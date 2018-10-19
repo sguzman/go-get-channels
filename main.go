@@ -4,8 +4,8 @@ import (
     "fmt"
     "github.com/PuerkitoBio/goquery"
     "net/http"
-    "strings"
     "strconv"
+    "strings"
 )
 
 func main() {
