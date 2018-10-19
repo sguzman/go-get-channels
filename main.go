@@ -8,8 +8,11 @@ import (
     "strings"
 )
 
-func main() {
-    // Request the HTML page.
+func page(i uint64) []string {
+    return []string{}
+}
+
+func max() uint64 {
     res, err := http.Get("https://dbase.tube/chart/channels/subscribers/all")
     if err != nil {
         panic(err)
@@ -24,15 +27,19 @@ func main() {
         panic(err)
     }
 
-    // Find the review items
     links := doc.Find("a[href^=\"/chart/channels/subscribers/all?page=\"]")
     pageCountStr := links.Last().Get(0).Attr[0].Val
     countIdx := strings.Index(pageCountStr, "=")
     countStr := pageCountStr[countIdx+1:len(pageCountStr)]
 
-    if count, err := strconv.Atoi(countStr); err == nil {
-        fmt.Println(count)
+    if count, err := strconv.ParseUint(countStr, 10, 64); err == nil {
+        return count
     } else {
         panic(err)
     }
+}
+
+func main() {
+    pages := max()
+
 }
