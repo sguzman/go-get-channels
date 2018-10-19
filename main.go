@@ -3,12 +3,14 @@ package main
 import (
     "fmt"
     "github.com/PuerkitoBio/goquery"
+    "github.com/deckarep/golang-set"
     "net/http"
     "strconv"
     "strings"
+    "time"
 )
 
-func page(i uint64) []string {
+func page(i uint64) mapset.Set {
     var url string
     if i < 2 {
         url = "https://dbase.tube/chart/channels/subscribers/all"
@@ -37,14 +39,14 @@ func page(i uint64) []string {
     }
 
     channels := doc.Find("a[href^=\"/c/UC\"]")
-    chans := make([]string, 0)
+    chanSet := mapset.NewSet()
     for i := 0; i < len(channels.Nodes); i++ {
         split := strings.Split(channels.Get(i).Attr[0].Val, "/")[2]
-        chans = append(chans, split)
+        chanSet.Add(split)
         fmt.Println(split)
     }
 
-    return chans
+    return chanSet
 }
 
 func max() uint64 {
@@ -77,11 +79,16 @@ func max() uint64 {
 func main() {
     pages := max()
     fmt.Println("Found", pages, "pages")
+    dur, err := time.ParseDuration("1s")
+    if err != nil {
+        panic(err)
+    }
 
     var i uint64
     for i = 1; i <= pages; i++ {
+        time.Sleep(dur)
         channels := page(i)
-        fmt.Println("Found", len(channels), "channels", "on page", i)
+        fmt.Println("Found", channels.Cardinality(), "channels", "on page", i)
     }
 
 }
