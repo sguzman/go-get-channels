@@ -104,12 +104,10 @@ func main() {
             panic(err)
         }
 
-        list := rand.Perm(10)
-        for i := 0; i < len(list); i++ {
-            fmt.Println(list[i])
-        }
+        list := rand.Perm(pages)
 
-        for i := range list {
+        for idx := 0; idx < len(list); idx++  {
+            i := list[idx]
             channels := page(i)
             fmt.Println("Found", channels.Cardinality(), "channels", "on page", i)
 
@@ -120,12 +118,13 @@ func main() {
                 insert(db, str)
             }
 
-            err := db.Close()
-            if err != nil {
-                panic(err)
-            }
             runtime.GC()
             time.Sleep(dur)
+        }
+
+        err = db.Close()
+        if err != nil {
+            panic(err)
         }
     }
 }
