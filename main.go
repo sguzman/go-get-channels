@@ -6,13 +6,15 @@ import (
     "github.com/PuerkitoBio/goquery"
     "github.com/deckarep/golang-set"
     _ "github.com/lib/pq"
+    "math/rand"
     "net/http"
+    "runtime"
     "strconv"
     "strings"
     "time"
 )
 
-func page(i uint64) mapset.Set {
+func page(i int) mapset.Set {
     var url string
     if i < 2 {
         url = "https://dbase.tube/chart/channels/subscribers/all"
@@ -51,7 +53,7 @@ func page(i uint64) mapset.Set {
     return chanSet
 }
 
-func max() uint64 {
+func max() int {
     res, err := http.Get("https://dbase.tube/chart/channels/subscribers/all")
     if err != nil {
         panic(err)
@@ -71,7 +73,7 @@ func max() uint64 {
     countIdx := strings.Index(pageCountStr, "=")
     countStr := pageCountStr[countIdx+1:len(pageCountStr)]
 
-    if count, err := strconv.ParseUint(countStr, 10, 64); err == nil {
+    if count, err := strconv.Atoi(countStr); err == nil {
         return count
     } else {
         panic(err)
@@ -102,9 +104,12 @@ func main() {
             panic(err)
         }
 
-        var i uint64
-        for i = 1; i <= pages; i++ {
-            time.Sleep(dur)
+        list := rand.Perm(10)
+        for i := 0; i < len(list); i++ {
+            fmt.Println(list[i])
+        }
+
+        for i := range list {
             channels := page(i)
             fmt.Println("Found", channels.Cardinality(), "channels", "on page", i)
 
@@ -114,7 +119,13 @@ func main() {
                 str = sliceSet[j].(string)
                 insert(db, str)
             }
+
+            err := db.Close()
+            if err != nil {
+                panic(err)
+            }
+            runtime.GC()
+            time.Sleep(dur)
         }
     }
-
 }
