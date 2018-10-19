@@ -8,8 +8,34 @@ import (
     "strings"
 )
 
-func page(i uint64) []string {
-    return []string{}
+func page(i uint64) {
+    var url string
+    if i < 2 {
+        url = "https://dbase.tube/chart/channels/subscribers/all"
+    } else {
+        url = fmt.Sprintf("https://dbase.tube/chart/channels/subscribers/all?page=%d", i)
+    }
+
+    res, err := http.Get(url)
+    if err != nil {
+        panic(err)
+    }
+
+    defer res.Body.Close()
+    if res.StatusCode != 200 {
+        panic(fmt.Sprintf("status code error: %d %s", res.StatusCode, res.Status))
+    }
+
+    doc, err := goquery.NewDocumentFromReader(res.Body)
+    if err != nil {
+        panic(err)
+    }
+
+    channels := doc.Find("a[href^=\"/c/UC\"]")
+    for i := 0; i < len(channels.Nodes); i++ {
+        split := strings.Split(channels.Get(i).Attr[0].Val, "/")[2]
+        fmt.Println(split)
+    }
 }
 
 func max() uint64 {
@@ -41,5 +67,11 @@ func max() uint64 {
 
 func main() {
     pages := max()
+    fmt.Println("Found", pages, "pages")
+
+    var i uint64
+    for i = 1; i <= pages; i++ {
+        page(i)
+    }
 
 }
