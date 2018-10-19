@@ -1,9 +1,11 @@
 package main
 
 import (
+    "database/sql"
     "fmt"
     "github.com/PuerkitoBio/goquery"
     "github.com/deckarep/golang-set"
+    _ "github.com/lib/pq"
     "net/http"
     "strconv"
     "strings"
@@ -76,19 +78,43 @@ func max() uint64 {
     }
 }
 
-func main() {
-    pages := max()
-    fmt.Println("Found", pages, "pages")
-    dur, err := time.ParseDuration("1s")
+func insert(db *sql.DB, channel string) {
+    sqlInsert := "INSERT INTO youtube.entities.channels (serial) VALUES ($1) ON CONFLICT (serial) DO NOTHING"
+
+    _, err := db.Exec(sqlInsert, channel)
     if err != nil {
         panic(err)
     }
+}
 
-    var i uint64
-    for i = 1; i <= pages; i++ {
-        time.Sleep(dur)
-        channels := page(i)
-        fmt.Println("Found", channels.Cardinality(), "channels", "on page", i)
+func main() {
+    for {
+        pages := max()
+        fmt.Println("Found", pages, "pages")
+        dur, err := time.ParseDuration("3s")
+        if err != nil {
+            panic(err)
+        }
+
+        connStr := "user=root dbname=youtube host=localhost port=5432 sslmode=disable"
+        db, err := sql.Open("postgres", connStr)
+        if err != nil {
+            panic(err)
+        }
+
+        var i uint64
+        for i = 1; i <= pages; i++ {
+            time.Sleep(dur)
+            channels := page(i)
+            fmt.Println("Found", channels.Cardinality(), "channels", "on page", i)
+
+            sliceSet := channels.ToSlice()
+            for j := 0; j < channels.Cardinality(); j++ {
+                var str string
+                str = sliceSet[j].(string)
+                insert(db, str)
+            }
+        }
     }
 
 }
