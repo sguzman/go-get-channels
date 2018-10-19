@@ -98,7 +98,7 @@ func main() {
             panic(err)
         }
 
-        connStr := "user=root dbname=youtube host=localhost port=5432 sslmode=disable"
+        connStr := "user=postgres dbname=youtube host=postgres-service.youtube.svc.cluster.local port=5432 sslmode=disable"
         db, err := sql.Open("postgres", connStr)
         if err != nil {
             panic(err)
