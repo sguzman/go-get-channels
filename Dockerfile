@@ -12,4 +12,7 @@ RUN go build -o main .
 FROM alpine
 
 COPY --from=base /app/main /main
-ENTRYPOINT ["/bin/sh"]
+
+RUN apk --no-cache add libc6-compat ca-certificates
+
+ENTRYPOINT ["/main"]
