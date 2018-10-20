@@ -1,6 +1,7 @@
 package main
 
 import (
+    "crypto/tls"
     "database/sql"
     "fmt"
     "github.com/PuerkitoBio/goquery"
@@ -22,6 +23,7 @@ func page(i int) mapset.Set {
         url = fmt.Sprintf("https://dbase.tube/chart/channels/subscribers/all?page=%d", i)
     }
 
+    http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
     res, err := http.Get(url)
     if err != nil {
         panic(err)
