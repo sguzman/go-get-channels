@@ -14,3 +14,5 @@ COPY --from=base /app/main /main
 COPY --from=base /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 RUN apk --no-cache add libc6-compat
+
+ENTRYPOINT ["/app/main"]
